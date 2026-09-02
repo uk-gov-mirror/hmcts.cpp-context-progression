@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -16,6 +17,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static uk.gov.justice.services.common.http.HeaderConstants.ID;
+import static uk.gov.moj.cpp.progression.stub.UsersAndGroupsStub.clearPermissionsQueryStubs;
 import static uk.gov.moj.cpp.progression.util.FileUtil.getPayload;
 
 public class WireMockStubUtils {
@@ -63,7 +65,9 @@ public class WireMockStubUtils {
     }
 
     public static void stubUserGroupDefenceClientPermission(final String responsePayLoad) {
+        clearPermissionsQueryStubs();
         stubFor(get(urlPathEqualTo(format("/usersgroups-service/query/api/rest/usersgroups/permissions")))
+                .withQueryParam("object", equalTo("DefendantDocuments"))
                 .willReturn(aResponse().withStatus(OK.getStatusCode())
                         .withHeader(ID, randomUUID().toString())
                         .withHeader(CONTENT_TYPE, CONTENT_TYPE_QUERY_PERMISSION)

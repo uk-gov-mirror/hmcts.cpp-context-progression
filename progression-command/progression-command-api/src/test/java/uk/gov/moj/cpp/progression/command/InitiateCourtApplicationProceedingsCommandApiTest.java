@@ -287,6 +287,19 @@ public class InitiateCourtApplicationProceedingsCommandApiTest {
     }
 
     @Test
+    public void shouldSendCommandWhenBoxHearingAndAllowedHearingTypesExist() {
+        final String applicationTypeId = randomUUID().toString();
+        final JsonEnvelope commandEnvelope = buildStandaloneBoxHearingEnvelope(applicationTypeId);
+
+        stubHasPermission(true);
+
+        initiateCourtApplicationProceedingsCommandApi.initiateCourtApplicationProceedings(commandEnvelope);
+
+        verify(sender, times(1)).send(envelopeCaptor.capture());
+        assertThat(envelopeCaptor.getValue().metadata().name(), is("progression.command.initiate-court-proceedings-for-application"));
+    }
+
+    @Test
     public void shouldSendCommandWhenNoAllowedHearingTypeMappingExists() {
         final String applicationTypeId = randomUUID().toString();
         final JsonEnvelope commandEnvelope = buildStandaloneEnvelope(applicationTypeId, randomUUID().toString());
@@ -334,6 +347,19 @@ public class InitiateCourtApplicationProceedingsCommandApiTest {
                     .add("hearingType", createObjectBuilder().add("id", hearingTypeId)));
         }
         return buildEnvelope(payload.build());
+    }
+
+    private JsonEnvelope buildStandaloneBoxHearingEnvelope(final String applicationTypeId) {
+        final JsonObject payload = createObjectBuilder()
+                .add("courtApplication", createObjectBuilder()
+                        .add("id", randomUUID().toString())
+                        .add("type", createObjectBuilder()
+                                .add("id", applicationTypeId)
+                                .add("code", "anyCode")
+                                .add("linkType", "STANDALONE")))
+                .add("boxHearing", createObjectBuilder().add("jurisdictionType", "MAGISTRATES"))
+                .build();
+        return buildEnvelope(payload);
     }
 
     private JsonObject allowedHearingTypePermissions(final String source, final String... targets) {
